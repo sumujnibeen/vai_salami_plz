@@ -7,6 +7,11 @@
   
   <link rel="icon" type="image/png" href="image/fav.png"/>
 
+  <!-- Preload bg image — browser fetches it before CSS even parses -->
+  <link rel="preload" as="image" href="image/bg.webp" type="image/webp"/>
+  <!-- Fallback preload for PNG if no webp -->
+  <link rel="preload" as="image" href="image/bg.png"/>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Noto+Serif+Bengali:wght@700;900&display=swap" rel="stylesheet"/>
 
@@ -41,13 +46,14 @@
       position: fixed;
       inset: 0;
       z-index: 9999;
-      background: url('image/bg.png') center/cover no-repeat;
+      background: url('image/bg.webp') center/cover no-repeat,
+                  url('image/bg.png') center/cover no-repeat;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
       transition: opacity .3s ease;
-      /* Reduce paint cost: no blur on overlay itself */
+      will-change: opacity;
     }
     #intro-overlay.fadeout { opacity: 0; pointer-events: none; }
 
@@ -198,7 +204,8 @@
     }
 
     .cards-section {
-      background: url('image/bg.png') center center/cover no-repeat;
+      background: url('image/bg.webp') center center/cover no-repeat,
+                  url('image/bg.png') center center/cover no-repeat;
       position: relative;
       min-height: calc(100vh - 160px);
       display: flex;
@@ -418,7 +425,7 @@
 <div id="main-content">
 
   <div class="site-header">
-    <div class="arabic">​السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ وَمَغْفِرَتُهُ </div>
+    <div class="arabic">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ وَمَغْفِرَتُهُ</div>
     <div class="trans">আস-সালামু আলাইকুম ওয়া রাহমাতুল্লাহি ওয়া বারাকাতুহু ওয়া মাগফিরাতুহু।</div>
     <div class="meaning">আপনার ওপর শান্তি, আল্লাহর রহমত, তাঁর বরকত এবং তাঁর ক্ষমা বর্ষিত হোক।</div>
     <div class="eid-badge">🌙 ঈদ মোবারক — সালামি দিন! 💸</div>
@@ -434,7 +441,7 @@
               <img src="image/shafi.png" alt="শাফী"/>
             </div>
             <div class="profile-name">শাফী</div>
-            <div class="profile-sub">আপনার ছোট্ট ভাই 😊</div>
+            <div class="profile-sub">তোমার ছোট্ট ভাই 😊</div>
             <div class="salami-badge">💸 সালামি পাঠান</div>
             <p class="profile-msg">
               ভাই/আপু, ঈদের আনন্দে<br/>একটুখানি সালামি দিলে<br/>খুব খুশি হবো! 🙏<br/>
@@ -579,42 +586,52 @@ function buildPopup(data, slot) {
 }
 
 window.addEventListener('load', () => {
-  // Phase 1: show greeting
+  // Phase 1: show greeting immediately
   setTimeout(() => phase1.classList.add('show'), 50);
 
   const isMobile = window.innerWidth < 600;
-  // ─── FIX: Max 4 popups on mobile, 6 on desktop ───
   const maxPopups = isMobile ? 4 : 6;
   const shuffled = [...POPUPS].sort(() => Math.random() - .5).slice(0, maxPopups);
   const slots = getSlots();
+  const staggerMs = isMobile ? 450 : 350;
 
-  // ─── FIX: Longer stagger interval = less simultaneous repaints ───
-  const staggerMs = isMobile ? 500 : 380;
+  // ─── Wait for bg image before starting popups ───
+  // If bg.webp already cached (preload worked), this resolves instantly
+  const bgImg = new Image();
+  bgImg.src = 'image/bg.webp';
 
-  shuffled.forEach((data, i) => {
+  const startPopups = () => {
+    shuffled.forEach((data, i) => {
+      setTimeout(() => {
+        const popup = buildPopup(data, slots[i]);
+        popupArea.appendChild(popup);
+        requestAnimationFrame(() => {
+          popup.classList.add('open');
+          setTimeout(() => popup.classList.add('settled'), 350);
+        });
+      }, 200 + i * staggerMs);  // 200ms after image ready — near instant
+    });
+
+    const totalIntroMs = 200 + maxPopups * staggerMs + 800;
+    setTimeout(() => overlay.classList.add('fadeout'), totalIntroMs);
     setTimeout(() => {
-      const popup = buildPopup(data, slots[i]);
-      popupArea.appendChild(popup);
+      overlay.style.display = 'none';
+      mainContent.style.display = 'block';
+      requestAnimationFrame(() => mainContent.classList.add('visible'));
+    }, totalIntroMs + 320);
+  };
 
-      // Single rAF instead of double rAF
-      requestAnimationFrame(() => {
-        popup.classList.add('open');
-        // Remove will-change after animation completes to free GPU memory
-        setTimeout(() => popup.classList.add('settled'), 400);
-      });
-    }, 800 + i * staggerMs);
-  });
-
-  // ─── FIX: Simpler timing — no complex calculation ───
-  const totalIntroMs = 800 + maxPopups * staggerMs + 800;
-
-  setTimeout(() => overlay.classList.add('fadeout'), totalIntroMs);
-  setTimeout(() => {
-    overlay.style.display = 'none';
-    mainContent.style.display = 'block';
-    // Single rAF is enough
-    requestAnimationFrame(() => mainContent.classList.add('visible'));
-  }, totalIntroMs + 620);
+  // If image loaded (preload success) → start immediately
+  // If not yet loaded → wait for it, but cap at 600ms fallback
+  if (bgImg.complete) {
+    startPopups();
+  } else {
+    let started = false;
+    const go = () => { if (!started) { started = true; startPopups(); } };
+    bgImg.onload = go;
+    bgImg.onerror = go;                    // even on error, proceed
+    setTimeout(go, 600);                   // max wait 600ms fallback
+  }
 });
 
 function copyNumber(num, cardEl) {
