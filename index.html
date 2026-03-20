@@ -11,6 +11,9 @@
   <link rel="preload" as="image" href="image/bg.webp" type="image/webp"/>
   <!-- Fallback preload for PNG if no webp -->
   <link rel="preload" as="image" href="image/bg.png"/>
+  <!-- Second phase background preload -->
+  <link rel="preload" as="image" href="image/bg2.webp" type="image/webp"/>
+  <link rel="preload" as="image" href="image/bg2.png"/>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Noto+Serif+Bengali:wght@700;900&display=swap" rel="stylesheet"/>
@@ -172,11 +175,15 @@
 
     /* ─── MAIN CONTENT ─── */
     #main-content {
-      display: none;
+      /* display:none এর বদলে visibility+opacity — transition smooth হবে */
       opacity: 0;
+      visibility: hidden;
       transition: opacity .5s ease;
     }
-    #main-content.visible { opacity: 1; }
+    #main-content.visible {
+      opacity: 1;
+      visibility: visible;
+    }
 
     .site-header {
       background: linear-gradient(135deg, #0a2a5e 0%, #0d6efd 100%);
@@ -204,8 +211,8 @@
     }
 
     .cards-section {
-      background: url('image/bg.webp') center center/cover no-repeat,
-                  url('image/bg.png') center center/cover no-repeat;
+      background: url('image/bg2.webp') center center/cover no-repeat,
+                  url('image/bg2.png') center center/cover no-repeat;
       position: relative;
       min-height: calc(100vh - 160px);
       display: flex;
@@ -613,12 +620,17 @@ window.addEventListener('load', () => {
     });
 
     const totalIntroMs = 200 + maxPopups * staggerMs + 800;
-    setTimeout(() => overlay.classList.add('fadeout'), totalIntroMs);
+
+    // Overlay fade + main content reveal একসাথে শুরু → true cross-fade
     setTimeout(() => {
-      overlay.style.display = 'none';
-      mainContent.style.display = 'block';
+      overlay.classList.add('fadeout');
       requestAnimationFrame(() => mainContent.classList.add('visible'));
-    }, totalIntroMs + 320);
+    }, totalIntroMs);
+
+    // Fade শেষে overlay DOM থেকে সরাও
+    setTimeout(() => {
+      overlay.style.visibility = 'hidden';
+    }, totalIntroMs + 400);
   };
 
   // If image loaded (preload success) → start immediately
