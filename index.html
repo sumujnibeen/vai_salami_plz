@@ -46,7 +46,7 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      transition: opacity .6s ease;
+      transition: opacity .3s ease;
       /* Reduce paint cost: no blur on overlay itself */
     }
     #intro-overlay.fadeout { opacity: 0; pointer-events: none; }
@@ -580,7 +580,7 @@ function buildPopup(data, slot) {
 
 window.addEventListener('load', () => {
   // Phase 1: show greeting
-  setTimeout(() => phase1.classList.add('show'), 100);
+  setTimeout(() => phase1.classList.add('show'), 50);
 
   const isMobile = window.innerWidth < 600;
   // ─── FIX: Max 4 popups on mobile, 6 on desktop ───
@@ -602,11 +602,11 @@ window.addEventListener('load', () => {
         // Remove will-change after animation completes to free GPU memory
         setTimeout(() => popup.classList.add('settled'), 400);
       });
-    }, 1800 + i * staggerMs);
+    }, 800 + i * staggerMs);
   });
 
   // ─── FIX: Simpler timing — no complex calculation ───
-  const totalIntroMs = 1800 + maxPopups * staggerMs + 2000;
+  const totalIntroMs = 800 + maxPopups * staggerMs + 800;
 
   setTimeout(() => overlay.classList.add('fadeout'), totalIntroMs);
   setTimeout(() => {
