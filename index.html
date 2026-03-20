@@ -36,6 +36,7 @@
       margin: 0; padding: 0;
     }
 
+    /* ─── INTRO OVERLAY ─── */
     #intro-overlay {
       position: fixed;
       inset: 0;
@@ -46,6 +47,7 @@
       justify-content: center;
       overflow: hidden;
       transition: opacity .6s ease;
+      /* Reduce paint cost: no blur on overlay itself */
     }
     #intro-overlay.fadeout { opacity: 0; pointer-events: none; }
 
@@ -54,13 +56,12 @@
       z-index: 5;
       text-align: center;
       pointer-events: none;
-      background: rgba(0,10,40,.55);
+      background: rgba(0,10,40,.65);
       padding: 1.3rem 2.8rem 1.6rem;
       border-radius: 20px;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      /* REMOVED backdrop-filter blur — GPU expensive */
       border: 1px solid rgba(100,160,255,.25);
-      box-shadow: 0 10px 48px rgba(13,110,253,.55), 0 0 80px rgba(13,110,253,.2);
+      box-shadow: 0 8px 32px rgba(13,110,253,.4);
     }
     #phase1 .p1-salaam {
       font-size: clamp(1.8rem, 5vw, 3rem);
@@ -94,23 +95,29 @@
       overflow: hidden;
     }
 
+    /* ─── WIN98 POPUP ─── */
     .win-popup {
       position: absolute;
       width: min(260px, 72vw);
       background: #f0f0f0;
       border: 2px solid #0078d7;
       border-radius: 6px;
-      box-shadow: 4px 4px 16px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.9);
+      /* Reduced shadow */
+      box-shadow: 3px 3px 10px rgba(0,0,0,.45);
       opacity: 0;
-      transform: scale(0.75);
-      transition: opacity .22s ease, transform .22s cubic-bezier(.34,1.56,.64,1);
+      transform: scale(0.8);
+      /* Use will-change only on animating elements */
+      will-change: opacity, transform;
+      transition: opacity .2s ease, transform .2s cubic-bezier(.34,1.4,.64,1);
       font-family: 'Segoe UI', 'Hind Siliguri', sans-serif;
       overflow: hidden;
       pointer-events: none;
       user-select: none;
     }
-    @media (min-width: 600px) { .win-popup { width: clamp(230px, 27vw, 295px); } }
+    @media (min-width: 600px) { .win-popup { width: clamp(220px, 25vw, 280px); } }
     .win-popup.open { opacity: 1; transform: scale(1); }
+    /* Remove will-change after animation to free GPU memory */
+    .win-popup.settled { will-change: auto; }
 
     .win-titlebar {
       background: linear-gradient(to right, #0078d7, #1e90ff);
@@ -157,10 +164,11 @@
       font-size: .75rem; font-weight: 600; color: #003d8f; cursor: default;
     }
 
+    /* ─── MAIN CONTENT ─── */
     #main-content {
       display: none;
       opacity: 0;
-      transition: opacity .6s ease;
+      transition: opacity .5s ease;
     }
     #main-content.visible { opacity: 1; }
 
@@ -168,7 +176,7 @@
       background: linear-gradient(135deg, #0a2a5e 0%, #0d6efd 100%);
       padding: 1.6rem 1rem 1.4rem;
       text-align: center;
-      box-shadow: 0 4px 24px rgba(13,110,253,.4);
+      box-shadow: 0 4px 20px rgba(13,110,253,.35);
     }
     .site-header .arabic {
       font-size: clamp(1.3rem, 3.5vw, 1.9rem);
@@ -186,7 +194,7 @@
       font-family: 'Noto Serif Bengali', serif;
       font-size: clamp(1.1rem, 3vw, 1.5rem);
       font-weight: 700; color: #fff;
-      backdrop-filter: blur(8px);
+      /* Removed backdrop-filter */
     }
 
     .cards-section {
@@ -200,7 +208,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: rgba(8, 18, 50, 0.55);
+      background: rgba(8, 18, 50, 0.60);
       pointer-events: none;
       z-index: 0;
     }
@@ -217,18 +225,18 @@
       width: 100%;
     }
 
+    /* Lighter shadows, no blur */
     .clay {
-      background: rgba(8,18,42,.85);
-      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(8,18,42,.88);
+      border: 1px solid rgba(255,255,255,.15);
       border-radius: 24px;
-      box-shadow: 0 8px 32px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.1);
-      transition: transform .28s ease, box-shadow .28s ease;
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
+      /* Lighter shadow — faster paint */
+      box-shadow: 0 6px 18px rgba(0,0,0,.4);
+      transition: transform .25s ease, box-shadow .25s ease;
     }
     .clay:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 18px 48px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.1);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(0,0,0,.45);
     }
 
     .profile-card { padding: 2rem 1.5rem; text-align: center; height: 100%; }
@@ -236,7 +244,7 @@
       width: 130px; height: 130px;
       border-radius: 50%; margin: 0 auto 1rem; padding: 4px;
       background: linear-gradient(135deg, #0d6efd, #3d8bfd, #0a58ca);
-      box-shadow: 0 0 0 4px rgba(13,110,253,.25), 0 10px 28px rgba(0,0,0,.5);
+      box-shadow: 0 0 0 4px rgba(13,110,253,.25), 0 8px 20px rgba(0,0,0,.45);
     }
     .profile-ring img {
       width:100%; height:100%; border-radius:50%;
@@ -273,16 +281,16 @@
     .nagad-card  { border-color: rgba(245,130,32,.45)  !important; background: rgba(245,130,32,.08)  !important; }
     .rocket-card { border-color: rgba(130,41,142,.45)  !important; background: rgba(130,41,142,.08)  !important; }
 
-    .bkash-card:hover  { box-shadow: 0 18px 40px rgba(226,19,110,.25) !important; }
-    .nagad-card:hover  { box-shadow: 0 18px 40px rgba(245,130,32,.25)  !important; }
-    .rocket-card:hover { box-shadow: 0 18px 40px rgba(130,41,142,.25)  !important; }
+    .bkash-card:hover  { box-shadow: 0 12px 28px rgba(226,19,110,.2) !important; }
+    .nagad-card:hover  { box-shadow: 0 12px 28px rgba(245,130,32,.2)  !important; }
+    .rocket-card:hover { box-shadow: 0 12px 28px rgba(130,41,142,.2)  !important; }
 
     .pay-logo {
       width: 60px; height: 60px; border-radius: 18px;
       margin: 0 auto .75rem;
       display: flex; align-items: center; justify-content: center;
       font-size: 1.7rem; font-weight: 900; color: #fff;
-      box-shadow: 0 4px 16px rgba(0,0,0,.35);
+      box-shadow: 0 3px 10px rgba(0,0,0,.3);
       overflow: hidden; padding: 0;
     }
     .pay-logo img { width:100%; height:100%; object-fit:cover; border-radius:16px; }
@@ -321,7 +329,7 @@
       width: 110px; height: 110px; margin: 0 auto .8rem;
       border-radius: 14px; padding: 6px;
       background: rgba(255,255,255,.95);
-      box-shadow: 0 3px 14px rgba(0,0,0,.4);
+      box-shadow: 0 2px 10px rgba(0,0,0,.35);
     }
     .qr-box img { width:100%; height:100%; border-radius:8px; object-fit:cover; display:block; }
 
@@ -329,11 +337,11 @@
       display: inline-flex; align-items: center; gap: .3rem;
       padding: .48rem 1.3rem; border-radius: 30px;
       font-size: .85rem; font-weight: 700; color: #fff;
-      box-shadow: 0 3px 12px rgba(0,0,0,.35);
-      transition: transform .2s, box-shadow .2s;
+      box-shadow: 0 3px 10px rgba(0,0,0,.3);
+      transition: transform .18s, box-shadow .18s;
       cursor: pointer; border: none; outline: none;
     }
-    .payment-card:hover .send-btn { transform: scale(1.07); box-shadow: 0 7px 22px rgba(0,0,0,.45); }
+    .payment-card:hover .send-btn { transform: scale(1.06); box-shadow: 0 5px 16px rgba(0,0,0,.4); }
     .bkash-card  .send-btn { background: var(--bkash); }
     .nagad-card  .send-btn { background: var(--nagad); }
     .rocket-card .send-btn { background: var(--rocket); }
@@ -368,8 +376,8 @@
       transform: translateX(-50%) translateY(80px);
       background: #1e3a5f; border: 1px solid rgba(13,110,253,.4);
       color: #cfe2ff; font-size: .88rem; padding: .55rem 1.4rem;
-      border-radius: 30px; box-shadow: 0 6px 24px rgba(0,0,0,.5);
-      transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .35s;
+      border-radius: 30px; box-shadow: 0 4px 16px rgba(0,0,0,.4);
+      transition: transform .3s cubic-bezier(.34,1.4,.64,1), opacity .3s;
       opacity: 0; z-index: 8000; white-space: nowrap;
     }
     #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
@@ -423,8 +431,7 @@
         <div class="col-12 col-md-4">
           <div class="clay profile-card">
             <div class="profile-ring">
-              <img src="image/shafi.png" alt="শাফী"
-                   />
+              <img src="image/shafi.png" alt="শাফী"/>
             </div>
             <div class="profile-name">শাফী</div>
             <div class="profile-sub">তোমার ছোট্ট ভাই 😊</div>
@@ -437,7 +444,7 @@
         </div>
 
         <div class="col-12 col-md-8">
-          <div class=" title_card sec-title">💳 সালামি পাঠানোর মাধ্যম বেছে নিন</div>
+          <div class="title_card sec-title">💳 সালামি পাঠানোর মাধ্যম বেছে নিন</div>
           <div class="row g-3">
 
             <div class="col-12 col-sm-4">
@@ -502,57 +509,40 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// ─── OPTIMIZED: Max 6 popups instead of 12 ───
 const POPUPS = [
   { icon:'⚠️', title:'সালামি অনুরোধ — জরুরি বিজ্ঞপ্তি',   body:'<strong>ভাই সালামি দিবেন না?</strong><br/>এটি একটি গুরুত্বপূর্ণ অনুরোধ। অনুগ্রহ করে সালামি প্রদান করুন।' },
   { icon:'🚫', title:'বিয়ে সতর্কতা — EidSystem.exe',        body:'<strong>সালামি না দিলে বিয়ে হবে না!</strong><br/>আপনার বিবাহ প্রক্রিয়া স্থগিত করা হয়েছে।' },
   { icon:'✅', title:'সুখবর — SalamiBonus.exe',              body:'<strong>সালামি দিলে দোয়া করব!</strong><br/>আল্লাহর রহমতে আপনার সম্পত্তি বৃদ্ধি পাবে।' },
-  { icon:'💰', title:'টাকা চুরির সতর্কতা',                  body:'সালামি পাঠালে <strong>আপনার মন খারাপ</strong> সিজি 4.00 । ঝুঁকি নিবেন না।' },
-  { icon:'🤲', title:'দোয়া আবেদন — Eid2025.exe',            body:'ছোট ভাই সালামির জন্য অপেক্ষায় আছে।<br/><strong>একটু সদয় হোন! 🥺</strong>' },
-  { icon:'⚠️', title:'জরুরি — EidAlert.exe',                body:'<strong>সালামি না দিলে</strong> এই পপআপ বন্ধ হবে না।<br/>দ্রুত পদক্ষেপ নিন!' },
-  { icon:'💸', title:'Payment Required — Salami.exe',        body:'আপনার দেওয়া সালামির পরিমাণ এখনও শূন্য।<br/><strong>বিকাশ / নগদ / রকেটে</strong> পাঠিয়ে দিন।' },
-  { icon:'🕌', title:'ঈদ মোবারক — শাফীর পক্ষ থেকে',        body:'ঈদের এই আনন্দময় দিনে<br/><strong>একটু সালামি পাঠান।</strong> জাযাকাল্লাহ খায়রান!' },
   { icon:'😭', title:'কান্নার বিজ্ঞপ্তি — Cry.exe',         body:'সালামি না পেলে <strong>ছোট ভাই কাঁদবে।</strong><br/>আপনিই কি এর দায়িত্ব নেবেন? 😢' },
-  { icon:'🎁', title:'উপহার প্রত্যাশা — Gift.exe',           body:'ঈদে সবাই উপহার পায়।<br/><strong>আমার উপহার = সালামি।</strong> এটুকুই চাই! 🙏' },
   { icon:'📢', title:'ঘোষণা — SalamiNews.exe',               body:'<strong>ব্রেকিং নিউজ:</strong><br/>শাফী এখনও সালামি পায়নি। জাতি উদ্বিগ্ন।' },
-  { icon:'🔔', title:'রিমাইন্ডার — Reminder.exe',            body:'আপনি সালামি দিতে ভুলে গেছেন।<br/><strong>এখনই সুযোগ, দিয়ে দিন!</strong> ⏰' },
+  { icon:'💸', title:'Payment Required — Salami.exe',        body:'আপনার দেওয়া সালামির পরিমাণ এখনও শূন্য।<br/><strong>বিকাশ / নগদ / রকেটে</strong> পাঠিয়ে দিন।' },
 ];
 
+// ─── Smarter slot layout: fewer, non-overlapping positions ───
 function getSlots() {
   const w = window.innerWidth;
   const mobile = w < 600;
-  const popW = mobile ? Math.min(260, w * 0.72) : 295;
-  const pct = (px) => ((px / w) * 100).toFixed(1) + '%';
 
   if (mobile) {
-    const col1 = '2%';
-    const col2 = pct(w / 2 - popW / 2);
-    const col3 = pct(w - popW - 4);
+    // 3 positions only on mobile to avoid crowd
     return [
-      { left: col1, top: '2%'  }, { left: col3, top: '4%'  },
-      { left: col2, top: '18%' }, { left: col1, top: '34%' },
-      { left: col3, top: '30%' }, { left: col2, top: '50%' },
-      { left: col1, top: '64%' }, { left: col3, top: '60%' },
-      { left: col2, top: '76%' }, { left: col1, top: '46%' },
-      { left: col3, top: '46%' }, { left: col2, top: '8%'  },
+      { left: '2%',  top: '2%'  },
+      { right: '2%', top: '4%'  },
+      { left: '10%', top: '48%' },
+      { right: '2%', top: '50%' },
+      { left: '2%',  top: '72%' },
+      { right: '2%', top: '74%' },
     ];
   }
-
-  /* Desktop — 5 zone layout:
-     বাম | মাঝ-বাম | মাঝ | মাঝ-ডান | ডান
-     প্রতি row তে সব জায়গায় একটা করে popup */
+  // Desktop — 6 well-spaced positions
   return [
-    { left: '1%',  top: '2%'  },  /* বাম উপর */
-    { left: '20%', top: '14%' },  /* মাঝ-বাম উপর */
-    { left: '37%', top: '2%'  },  /* মাঝ উপর */
-    { left: '58%', top: '14%' },  /* মাঝ-ডান উপর */
-    { right: '1%', top: '2%'  },  /* ডান উপর */
-    { left: '1%',  top: '35%' },  /* বাম মাঝ */
-    { left: '37%', top: '36%' },  /* মাঝ মাঝ */
-    { left: '58%', top: '38%' },  /* মাঝ-ডান মাঝ */
-    { right: '1%', top: '30%' },  /* ডান মাঝ */
-    { left: '1%',  top: '63%' },  /* বাম নিচ */
-    { left: '20%', top: '65%' },  /* মাঝ-বাম নিচ */
-    { right: '1%', top: '60%' },  /* ডান নিচ */
+    { left: '1%',   top: '3%'  },
+    { left: '22%',  top: '8%'  },
+    { right: '1%',  top: '3%'  },
+    { left: '1%',   top: '50%' },
+    { left: '38%',  top: '55%' },
+    { right: '1%',  top: '50%' },
   ];
 }
 
@@ -589,25 +579,42 @@ function buildPopup(data, slot) {
 }
 
 window.addEventListener('load', () => {
+  // Phase 1: show greeting
   setTimeout(() => phase1.classList.add('show'), 100);
 
-  const shuffled = [...POPUPS].sort(() => Math.random() - .5);
+  const isMobile = window.innerWidth < 600;
+  // ─── FIX: Max 4 popups on mobile, 6 on desktop ───
+  const maxPopups = isMobile ? 4 : 6;
+  const shuffled = [...POPUPS].sort(() => Math.random() - .5).slice(0, maxPopups);
   const slots = getSlots();
+
+  // ─── FIX: Longer stagger interval = less simultaneous repaints ───
+  const staggerMs = isMobile ? 500 : 380;
+
   shuffled.forEach((data, i) => {
     setTimeout(() => {
-      const popup = buildPopup(data, slots[i % slots.length]);
+      const popup = buildPopup(data, slots[i]);
       popupArea.appendChild(popup);
-      requestAnimationFrame(() => requestAnimationFrame(() => popup.classList.add('open')));
-    }, 2000 + i * 300);
+
+      // Single rAF instead of double rAF
+      requestAnimationFrame(() => {
+        popup.classList.add('open');
+        // Remove will-change after animation completes to free GPU memory
+        setTimeout(() => popup.classList.add('settled'), 400);
+      });
+    }, 1800 + i * staggerMs);
   });
 
-  const allDone = 2000 + shuffled.length * 300 + 2400;
-  setTimeout(() => overlay.classList.add('fadeout'), allDone);
+  // ─── FIX: Simpler timing — no complex calculation ───
+  const totalIntroMs = 1800 + maxPopups * staggerMs + 2000;
+
+  setTimeout(() => overlay.classList.add('fadeout'), totalIntroMs);
   setTimeout(() => {
     overlay.style.display = 'none';
     mainContent.style.display = 'block';
-    requestAnimationFrame(() => requestAnimationFrame(() => mainContent.classList.add('visible')));
-  }, allDone + 600);
+    // Single rAF is enough
+    requestAnimationFrame(() => mainContent.classList.add('visible'));
+  }, totalIntroMs + 620);
 });
 
 function copyNumber(num, cardEl) {
