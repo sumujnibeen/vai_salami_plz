@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ঈদ সালামি চাই শাফী</title>
+  
+  <link rel="icon" type="image/png" href="image/fav.png"/>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Noto+Serif+Bengali:wght@700;900&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --primary:   #0d6efd;
+      --primary-d: #0a58ca;
+      --primary-l: #cfe2ff;
+      --bg:        #0d1b2e;
+      --surface:   #112240;
+      --border:    rgba(255,255,255,0.10);
+      --text:      #e2eaff;
+      --muted:     #7b93b8;
+      --bkash:     #E2136E;
+      --nagad:     #F58220;
+      --rocket:    #82298E;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      font-family: 'Hind Siliguri', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      margin: 0; padding: 0;
+    }
+
+    #intro-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: url('image/bg.png') center/cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: opacity .6s ease;
+    }
+    #intro-overlay.fadeout { opacity: 0; pointer-events: none; }
+
+    #phase1 {
+      position: relative;
+      z-index: 5;
+      text-align: center;
+      pointer-events: none;
+      background: rgba(0,10,40,.55);
+      padding: 1.3rem 2.8rem 1.6rem;
+      border-radius: 20px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(100,160,255,.25);
+      box-shadow: 0 10px 48px rgba(13,110,253,.55), 0 0 80px rgba(13,110,253,.2);
+    }
+    #phase1 .p1-salaam {
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 2px 6px rgba(0,0,0,.9);
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity .55s ease, transform .55s ease;
+      margin-bottom: .4rem;
+    }
+    #phase1 .p1-eid {
+      font-family: 'Noto Serif Bengali', serif;
+      font-size: clamp(3.5rem, 11vw, 6.5rem);
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 3px 10px rgba(0,0,0,.9);
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity .65s ease .22s, transform .65s ease .22s;
+      line-height: 1.1;
+    }
+    #phase1.show .p1-salaam,
+    #phase1.show .p1-eid { opacity: 1; transform: translateY(0); }
+
+    #popup-area {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+      overflow: hidden;
+    }
+
+    .win-popup {
+      position: absolute;
+      width: min(260px, 72vw);
+      background: #f0f0f0;
+      border: 2px solid #0078d7;
+      border-radius: 6px;
+      box-shadow: 4px 4px 16px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.9);
+      opacity: 0;
+      transform: scale(0.75);
+      transition: opacity .22s ease, transform .22s cubic-bezier(.34,1.56,.64,1);
+      font-family: 'Segoe UI', 'Hind Siliguri', sans-serif;
+      overflow: hidden;
+      pointer-events: none;
+      user-select: none;
+    }
+    @media (min-width: 600px) { .win-popup { width: clamp(230px, 27vw, 295px); } }
+    .win-popup.open { opacity: 1; transform: scale(1); }
+
+    .win-titlebar {
+      background: linear-gradient(to right, #0078d7, #1e90ff);
+      padding: 5px 8px 5px 10px;
+      display: flex; align-items: center; justify-content: space-between; gap: .4rem;
+    }
+    .win-icon { font-size: .85rem; }
+    .win-title {
+      font-size: .72rem; font-weight: 600; color: #fff;
+      flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .win-btns { display: flex; gap: 3px; }
+    .win-btn {
+      width: 16px; height: 14px; border-radius: 2px; border: none;
+      cursor: default; font-size: .55rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .win-btn.min { background: #e8e8e8; color: #333; }
+    .win-btn.max { background: #e8e8e8; color: #333; }
+    .win-btn.cls { background: #e81123; color: #fff; }
+
+    .win-body {
+      padding: .7rem .9rem .8rem;
+      display: flex; align-items: flex-start; gap: .65rem;
+    }
+    .win-body-icon { font-size: 2rem; line-height: 1; flex-shrink: 0; }
+    .win-body-text {
+      font-size: clamp(.78rem, 2.8vw, .92rem);
+      color: #1a1a1a; line-height: 1.45;
+      font-family: 'Hind Siliguri', sans-serif;
+    }
+    .win-body-text strong { color: #0078d7; }
+
+    .win-footer {
+      border-top: 1px solid #d0d0d0;
+      padding: .45rem .9rem;
+      display: flex; justify-content: flex-end; gap: .4rem;
+      background: #f6f6f6;
+    }
+    .win-ok {
+      padding: .25rem 1.1rem;
+      background: linear-gradient(to bottom, #e6f0fd, #cce0fb);
+      border: 1px solid #0078d7; border-radius: 3px;
+      font-size: .75rem; font-weight: 600; color: #003d8f; cursor: default;
+    }
+
+    #main-content {
+      display: none;
+      opacity: 0;
+      transition: opacity .6s ease;
+    }
+    #main-content.visible { opacity: 1; }
+
+    .site-header {
+      background: linear-gradient(135deg, #0a2a5e 0%, #0d6efd 100%);
+      padding: 1.6rem 1rem 1.4rem;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(13,110,253,.4);
+    }
+    .site-header .arabic {
+      font-size: clamp(1.3rem, 3.5vw, 1.9rem);
+      color: #cfe2ff; direction: rtl; line-height: 1.8;
+      text-shadow: 0 0 20px rgba(255,255,255,.2); margin-bottom: .3rem;
+    }
+    .site-header .trans { font-size: .9rem; color: #93c5fd; margin-bottom: .15rem; }
+    .site-header .meaning { font-size: .82rem; color: rgba(207,226,255,.7); }
+    .eid-badge {
+      display: inline-block; margin-top: .9rem;
+      padding: .45rem 1.8rem;
+      background: rgba(255,255,255,.12);
+      border: 1.5px solid rgba(255,255,255,.28);
+      border-radius: 50px;
+      font-family: 'Noto Serif Bengali', serif;
+      font-size: clamp(1.1rem, 3vw, 1.5rem);
+      font-weight: 700; color: #fff;
+      backdrop-filter: blur(8px);
+    }
+
+    .cards-section {
+      background: url('image/bg.png') center center/cover no-repeat;
+      position: relative;
+      min-height: calc(100vh - 160px);
+      display: flex;
+      align-items: center;
+    }
+    .cards-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(8, 18, 50, 0.55);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .cards-section > .container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+    .cards-section > .container > .row {
+      justify-content: center;
+      width: 100%;
+    }
+
+    .clay {
+      background: rgba(8,18,42,.85);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.1);
+      transition: transform .28s ease, box-shadow .28s ease;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+    .clay:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 18px 48px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.1);
+    }
+
+    .profile-card { padding: 2rem 1.5rem; text-align: center; height: 100%; }
+    .profile-ring {
+      width: 130px; height: 130px;
+      border-radius: 50%; margin: 0 auto 1rem; padding: 4px;
+      background: linear-gradient(135deg, #0d6efd, #3d8bfd, #0a58ca);
+      box-shadow: 0 0 0 4px rgba(13,110,253,.25), 0 10px 28px rgba(0,0,0,.5);
+    }
+    .profile-ring img {
+      width:100%; height:100%; border-radius:50%;
+      object-fit:cover; border:3px solid var(--surface);
+    }
+    .profile-name {
+      font-family: 'Noto Serif Bengali', serif;
+      font-size: 1.45rem; font-weight: 900; color: var(--text); margin-bottom: .25rem;
+    }
+    .profile-sub { font-size: .86rem; color: var(--muted); }
+    .salami-badge {
+      display: inline-block; margin-top: .9rem;
+      padding: .4rem 1.2rem;
+      background: rgba(13,110,253,.18);
+      border: 1.5px solid rgba(13,110,253,.35);
+      border-radius: 30px;
+      font-size: .88rem; color: #93c5fd; font-weight: 700;
+    }
+    .profile-msg { margin-top: .9rem; font-size: .84rem; color: var(--muted); line-height: 1.7; }
+
+    .sec-title {
+      font-family: 'Noto Serif Bengali', serif;
+      font-size: 1.08rem; font-weight: 700; color: #ffffff;
+      text-align: center; margin-bottom: 1rem;
+      text-shadow: 0 2px 8px rgba(0,0,0,.7);
+    }
+
+    .payment-card {
+      padding: 1.5rem 1rem; text-align: center;
+      cursor: pointer; display: block;
+      position: relative; overflow: hidden;
+    }
+    .bkash-card  { border-color: rgba(226,19,110,.45) !important; background: rgba(226,19,110,.08) !important; }
+    .nagad-card  { border-color: rgba(245,130,32,.45)  !important; background: rgba(245,130,32,.08)  !important; }
+    .rocket-card { border-color: rgba(130,41,142,.45)  !important; background: rgba(130,41,142,.08)  !important; }
+
+    .bkash-card:hover  { box-shadow: 0 18px 40px rgba(226,19,110,.25) !important; }
+    .nagad-card:hover  { box-shadow: 0 18px 40px rgba(245,130,32,.25)  !important; }
+    .rocket-card:hover { box-shadow: 0 18px 40px rgba(130,41,142,.25)  !important; }
+
+    .pay-logo {
+      width: 60px; height: 60px; border-radius: 18px;
+      margin: 0 auto .75rem;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.7rem; font-weight: 900; color: #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,.35);
+      overflow: hidden; padding: 0;
+    }
+    .pay-logo img { width:100%; height:100%; object-fit:cover; border-radius:16px; }
+    .bkash-card  .pay-logo { background: var(--bkash); }
+    .nagad-card  .pay-logo { background: var(--nagad); }
+    .rocket-card .pay-logo { background: var(--rocket); }
+
+    .pay-name {
+      font-family: 'Noto Serif Bengali', serif;
+      font-size: 1.1rem; font-weight: 900; margin-bottom: .2rem;
+      text-shadow: 0 2px 8px rgba(0,0,0,.7);
+    }
+    .bkash-card  .pay-name { color: #ff8fc0; }
+    .nagad-card  .pay-name { color: #ffcc88; }
+    .rocket-card .pay-name { color: #dd99ee; }
+
+    .pay-num-row {
+      display: flex; align-items: center; justify-content: center; gap: .35rem;
+      margin-bottom: .8rem;
+    }
+    .pay-num {
+      font-size: .95rem; color: #ffffff; font-weight: 700; letter-spacing: .04em;
+      text-shadow: 0 2px 8px rgba(0,0,0,.7);
+    }
+    .copy-icon {
+      font-size: .78rem; color: var(--muted);
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 6px; padding: 2px 6px;
+      cursor: pointer; transition: background .2s, color .2s; white-space: nowrap;
+    }
+    .pay-num-row:hover .copy-icon { background: rgba(13,110,253,.25); color: #93c5fd; }
+    .copy-icon.copied { background: #16a34a33; color: #4ade80; border-color: #4ade8055; }
+
+    .qr-box {
+      width: 110px; height: 110px; margin: 0 auto .8rem;
+      border-radius: 14px; padding: 6px;
+      background: rgba(255,255,255,.95);
+      box-shadow: 0 3px 14px rgba(0,0,0,.4);
+    }
+    .qr-box img { width:100%; height:100%; border-radius:8px; object-fit:cover; display:block; }
+
+    .send-btn {
+      display: inline-flex; align-items: center; gap: .3rem;
+      padding: .48rem 1.3rem; border-radius: 30px;
+      font-size: .85rem; font-weight: 700; color: #fff;
+      box-shadow: 0 3px 12px rgba(0,0,0,.35);
+      transition: transform .2s, box-shadow .2s;
+      cursor: pointer; border: none; outline: none;
+    }
+    .payment-card:hover .send-btn { transform: scale(1.07); box-shadow: 0 7px 22px rgba(0,0,0,.45); }
+    .bkash-card  .send-btn { background: var(--bkash); }
+    .nagad-card  .send-btn { background: var(--nagad); }
+    .rocket-card .send-btn { background: var(--rocket); }
+
+    .dua-strip {
+      background: rgba(13,110,253,.3);
+      border-radius: 16px;
+      border: 1.5px solid rgba(100,170,255,.5);
+      padding: .85rem 1rem;
+      margin-top: 1.5rem;
+    }
+    .dua-strip span {
+      font-family: 'Noto Serif Bengali', serif;
+      font-size: .97rem; color: #ffffff; font-weight: 700;
+      text-shadow: 0 1px 6px rgba(0,0,0,.8);
+    }
+    .title_card{
+      background: rgba(13,110,253,.3);
+      border-radius: 16px;
+      border: 1.5px solid rgba(100,170,255,.5);
+      padding: .85rem 1rem;
+      margin-top: 0.8rem;
+    }
+    .title_card span {
+      font-family: 'Noto Serif Bengali', serif;
+      font-size: .97rem; color: #ffffff; font-weight: 700;
+      text-shadow: 0 1px 6px rgba(0,0,0,.8);
+    }
+
+    #toast {
+      position: fixed; bottom: 1.5rem; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1e3a5f; border: 1px solid rgba(13,110,253,.4);
+      color: #cfe2ff; font-size: .88rem; padding: .55rem 1.4rem;
+      border-radius: 30px; box-shadow: 0 6px 24px rgba(0,0,0,.5);
+      transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .35s;
+      opacity: 0; z-index: 8000; white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    @media (max-width: 575px) {
+      .site-header { padding: 1.1rem .75rem 1rem; }
+      .site-header .arabic { font-size: clamp(1rem, 5vw, 1.3rem); }
+      .site-header .trans { font-size: .78rem; }
+      .site-header .meaning { font-size: .74rem; }
+      .eid-badge { font-size: 1rem; padding: .4rem 1.1rem; }
+      .profile-card { padding: 1.4rem 1rem; }
+      .payment-card { padding: 1.1rem .75rem; }
+      .qr-box { width: 90px; height: 90px; }
+      .pay-num { font-size: .82rem; letter-spacing: .02em; }
+      .send-btn { padding: .42rem 1rem; font-size: .8rem; }
+      .sec-title { font-size: .95rem; }
+      .pay-num-row { flex-wrap: wrap; gap: .25rem; }
+      #phase1 { padding: 1rem 1.4rem 1.2rem; }
+    }
+    @media (min-width: 576px) and (max-width: 767px) {
+      .payment-card { padding: 1.2rem .8rem; }
+      .qr-box { width: 95px; height: 95px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="intro-overlay">
+  <div id="phase1">
+    <div class="p1-salaam">আস্-সালামু আলাইকুম ভাই </div>
+    <div class="p1-eid">ঈদ মোবারক </div>
+  </div>
+  <div id="popup-area"></div>
+</div>
+
+<div id="toast">📋 নম্বর কপি হয়েছে!</div>
+
+<div id="main-content">
+
+  <div class="site-header">
+    <div class="arabic">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ وَمَغْفِرَتُهُ</div>
+    <div class="trans">আস-সালামু আলাইকুম ওয়া রাহমাতুল্লাহি ওয়া বারাকাতুহু ওয়া মাগফিরাতুহু।</div>
+    <div class="meaning">আপনার ওপর শান্তি, আল্লাহর রহমত, তাঁর বরকত এবং তাঁর ক্ষমা বর্ষিত হোক।</div>
+    <div class="eid-badge">🌙 ঈদ মোবারক — সালামি দিন! 💸</div>
+  </div>
+
+  <div class="cards-section">
+    <div class="container py-4" style="max-width:960px;">
+      <div class="row g-4 align-items-stretch">
+
+        <div class="col-12 col-md-4">
+          <div class="clay profile-card">
+            <div class="profile-ring">
+              <img src="image/shafi.JPEG" alt="শাফী"
+                   />
+            </div>
+            <div class="profile-name">শাফী</div>
+            <div class="profile-sub">তোমার ছোট্ট ভাই 😊</div>
+            <div class="salami-badge">💸 সালামি পাঠান</div>
+            <p class="profile-msg">
+              ভাই/আপু, ঈদের আনন্দে<br/>একটুখানি সালামি দিলে<br/>খুব খুশি হবো! 🙏<br/>
+              <span style="color:#93c5fd;font-weight:600;">কার্ড থেকে সেন্ড মানি করেন প্লিজ!</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-8">
+          <div class=" title_card sec-title">💳 সালামি পাঠানোর মাধ্যম বেছে নিন</div>
+          <div class="row g-3">
+
+            <div class="col-12 col-sm-4">
+              <div class="clay payment-card bkash-card" onclick="copyNumber('01303021166', this)">
+                <div class="pay-logo"><img src="image/blogo.png" alt="bKash" onerror="this.style.display='none';this.parentNode.textContent='b'"/></div>
+                <div class="pay-name">বিকাশ</div>
+                <div class="pay-num-row">
+                  <span class="pay-num">01303021166</span>
+                  <span class="copy-icon" id="copy-bkash">📋 কপি</span>
+                </div>
+                <div class="qr-box">
+                  <img src="image/bikash.JPEG" alt="bKash QR"
+                       onerror="this.parentNode.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#E2136E;font-weight:700;font-size:.75rem;\'>QR কোড</div>'"/>
+                </div>
+                <button class="send-btn" onclick="openPayment(event,'bkash')">💸 Send Money</button>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-4">
+              <div class="clay payment-card nagad-card" onclick="copyNumber('01303021166', this)">
+                <div class="pay-logo"><img src="image/nlogo.png" alt="Nagad" onerror="this.style.display='none';this.parentNode.textContent='N'"/></div>
+                <div class="pay-name">নগদ</div>
+                <div class="pay-num-row">
+                  <span class="pay-num">01303021166</span>
+                  <span class="copy-icon" id="copy-nagad">📋 কপি</span>
+                </div>
+                <div class="qr-box">
+                  <img src="image/ng.png" alt="Nagad QR"
+                       onerror="this.parentNode.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#F58220;font-weight:700;font-size:.75rem;\'>QR কোড</div>'"/>
+                </div>
+                <button class="send-btn" onclick="openPayment(event,'nagad')">💸 Send Money</button>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-4">
+              <div class="clay payment-card rocket-card" onclick="copyNumber('01303021166', this)">
+                <div class="pay-logo"><img src="image/rlogo.jpg" alt="Rocket" onerror="this.style.display='none';this.parentNode.textContent='R'"/></div>
+                <div class="pay-name">রকেট</div>
+                <div class="pay-num-row">
+                  <span class="pay-num">01303021166</span>
+                  <span class="copy-icon" id="copy-rocket">📋 কপি</span>
+                </div>
+                <div class="qr-box">
+                  <img src="image/rc.png" alt="Rocket QR"
+                       onerror="this.parentNode.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#82298E;font-weight:700;font-size:.75rem;\'>QR কোড</div>'"/>
+                </div>
+                <button class="send-btn" onclick="openPayment(event,'rocket')">💸 Send Money</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="dua-strip text-center">
+        <span>🤲 সালামি দিলে দোয়া করব — আল্লাহ আপনার সম্পদ/সিজি বাড়িয়ে দিন! বিবাহ করার তৌফিক দিন! আমীন! 🤲</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const POPUPS = [
+  { icon:'⚠️', title:'সালামি অনুরোধ — জরুরি বিজ্ঞপ্তি',   body:'<strong>ভাই সালামি দিবেন না?</strong><br/>এটি একটি গুরুত্বপূর্ণ অনুরোধ। অনুগ্রহ করে সালামি প্রদান করুন।' },
+  { icon:'🚫', title:'বিয়ে সতর্কতা — EidSystem.exe',        body:'<strong>সালামি না দিলে বিয়ে হবে না!</strong><br/>আপনার বিবাহ প্রক্রিয়া স্থগিত করা হয়েছে।' },
+  { icon:'✅', title:'সুখবর — SalamiBonus.exe',              body:'<strong>সালামি দিলে দোয়া করব!</strong><br/>আল্লাহর রহমতে আপনার সম্পত্তি বৃদ্ধি পাবে।' },
+  { icon:'💰', title:'টাকা চুরির সতর্কতা',                  body:'সালামি পাঠালে <strong>আপনার মন খারাপ</strong> সিজি 4.00 । ঝুঁকি নিবেন না।' },
+  { icon:'🤲', title:'দোয়া আবেদন — Eid2025.exe',            body:'ছোট ভাই সালামির জন্য অপেক্ষায় আছে।<br/><strong>একটু সদয় হোন! 🥺</strong>' },
+  { icon:'⚠️', title:'জরুরি — EidAlert.exe',                body:'<strong>সালামি না দিলে</strong> এই পপআপ বন্ধ হবে না।<br/>দ্রুত পদক্ষেপ নিন!' },
+  { icon:'💸', title:'Payment Required — Salami.exe',        body:'আপনার দেওয়া সালামির পরিমাণ এখনও শূন্য।<br/><strong>বিকাশ / নগদ / রকেটে</strong> পাঠিয়ে দিন।' },
+  { icon:'🕌', title:'ঈদ মোবারক — শাফীর পক্ষ থেকে',        body:'ঈদের এই আনন্দময় দিনে<br/><strong>একটু সালামি পাঠান।</strong> জাযাকাল্লাহ খায়রান!' },
+  { icon:'😭', title:'কান্নার বিজ্ঞপ্তি — Cry.exe',         body:'সালামি না পেলে <strong>ছোট ভাই কাঁদবে।</strong><br/>আপনিই কি এর দায়িত্ব নেবেন? 😢' },
+  { icon:'🎁', title:'উপহার প্রত্যাশা — Gift.exe',           body:'ঈদে সবাই উপহার পায়।<br/><strong>আমার উপহার = সালামি।</strong> এটুকুই চাই! 🙏' },
+  { icon:'📢', title:'ঘোষণা — SalamiNews.exe',               body:'<strong>ব্রেকিং নিউজ:</strong><br/>শাফী এখনও সালামি পায়নি। জাতি উদ্বিগ্ন।' },
+  { icon:'🔔', title:'রিমাইন্ডার — Reminder.exe',            body:'আপনি সালামি দিতে ভুলে গেছেন।<br/><strong>এখনই সুযোগ, দিয়ে দিন!</strong> ⏰' },
+];
+
+function getSlots() {
+  const w = window.innerWidth;
+  const mobile = w < 600;
+  const popW = mobile ? Math.min(260, w * 0.72) : 295;
+  const pct = (px) => ((px / w) * 100).toFixed(1) + '%';
+
+  if (mobile) {
+    const col1 = '2%';
+    const col2 = pct(w / 2 - popW / 2);
+    const col3 = pct(w - popW - 4);
+    return [
+      { left: col1, top: '2%'  }, { left: col3, top: '4%'  },
+      { left: col2, top: '18%' }, { left: col1, top: '34%' },
+      { left: col3, top: '30%' }, { left: col2, top: '50%' },
+      { left: col1, top: '64%' }, { left: col3, top: '60%' },
+      { left: col2, top: '76%' }, { left: col1, top: '46%' },
+      { left: col3, top: '46%' }, { left: col2, top: '8%'  },
+    ];
+  }
+
+  /* Desktop — 5 zone layout:
+     বাম | মাঝ-বাম | মাঝ | মাঝ-ডান | ডান
+     প্রতি row তে সব জায়গায় একটা করে popup */
+  return [
+    { left: '1%',  top: '2%'  },  /* বাম উপর */
+    { left: '20%', top: '14%' },  /* মাঝ-বাম উপর */
+    { left: '37%', top: '2%'  },  /* মাঝ উপর */
+    { left: '58%', top: '14%' },  /* মাঝ-ডান উপর */
+    { right: '1%', top: '2%'  },  /* ডান উপর */
+    { left: '1%',  top: '35%' },  /* বাম মাঝ */
+    { left: '37%', top: '36%' },  /* মাঝ মাঝ */
+    { left: '58%', top: '38%' },  /* মাঝ-ডান মাঝ */
+    { right: '1%', top: '30%' },  /* ডান মাঝ */
+    { left: '1%',  top: '63%' },  /* বাম নিচ */
+    { left: '20%', top: '65%' },  /* মাঝ-বাম নিচ */
+    { right: '1%', top: '60%' },  /* ডান নিচ */
+  ];
+}
+
+const overlay     = document.getElementById('intro-overlay');
+const phase1      = document.getElementById('phase1');
+const popupArea   = document.getElementById('popup-area');
+const mainContent = document.getElementById('main-content');
+
+function buildPopup(data, slot) {
+  const el = document.createElement('div');
+  el.className = 'win-popup';
+  if (slot.left)  el.style.left  = slot.left;
+  if (slot.right) el.style.right = slot.right;
+  el.style.top = slot.top;
+  el.innerHTML = `
+    <div class="win-titlebar">
+      <span class="win-icon">${data.icon}</span>
+      <span class="win-title">${data.title}</span>
+      <div class="win-btns">
+        <span class="win-btn min">─</span>
+        <span class="win-btn max">□</span>
+        <span class="win-btn cls">✕</span>
+      </div>
+    </div>
+    <div class="win-body">
+      <div class="win-body-icon">${data.icon}</div>
+      <div class="win-body-text">${data.body}</div>
+    </div>
+    <div class="win-footer">
+      <span class="win-ok">OK</span>
+      <span class="win-ok" style="background:linear-gradient(to bottom,#fde,#fcc);border-color:#c00;color:#8b0000;">বাতিল</span>
+    </div>`;
+  return el;
+}
+
+window.addEventListener('load', () => {
+  setTimeout(() => phase1.classList.add('show'), 100);
+
+  const shuffled = [...POPUPS].sort(() => Math.random() - .5);
+  const slots = getSlots();
+  shuffled.forEach((data, i) => {
+    setTimeout(() => {
+      const popup = buildPopup(data, slots[i % slots.length]);
+      popupArea.appendChild(popup);
+      requestAnimationFrame(() => requestAnimationFrame(() => popup.classList.add('open')));
+    }, 2000 + i * 300);
+  });
+
+  const allDone = 2000 + shuffled.length * 300 + 2400;
+  setTimeout(() => overlay.classList.add('fadeout'), allDone);
+  setTimeout(() => {
+    overlay.style.display = 'none';
+    mainContent.style.display = 'block';
+    requestAnimationFrame(() => requestAnimationFrame(() => mainContent.classList.add('visible')));
+  }, allDone + 600);
+});
+
+function copyNumber(num, cardEl) {
+  navigator.clipboard.writeText(num).then(() => {
+    const icon = cardEl.querySelector('.copy-icon');
+    if (icon) {
+      icon.textContent = '✅ কপি হয়েছে';
+      icon.classList.add('copied');
+      setTimeout(() => { icon.textContent = '📋 কপি'; icon.classList.remove('copied'); }, 2000);
+    }
+    showToast('📋 ' + num + ' কপি হয়েছে!');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = num; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('📋 নম্বর কপি হয়েছে!');
+  });
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function openPayment(e, type) {
+  e.stopPropagation();
+  const deep  = { bkash:'bkash://', nagad:'nagad://', rocket:'rocket://' };
+  const store = {
+    bkash:  'https://play.google.com/store/apps/details?id=com.bKash.customerapp',
+    nagad:  'https://play.google.com/store/apps/details?id=com.konasl.nagad',
+    rocket: 'https://play.google.com/store/apps/details?id=com.dbbl.mobilebanking',
+  };
+  window.location.href = deep[type];
+  setTimeout(() => window.open(store[type], '_blank'), 1200);
+}
+</script>
+</body>
+</html>
